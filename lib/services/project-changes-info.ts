@@ -43,20 +43,24 @@ export class ProjectChangesInfo {
 				this.prepareInfo = this.$fs.readJson(buildInfoFile).wait();
 				this.appFilesChanged = this.containsNewerFiles(this.$projectData.appDirectoryPath, this.$projectData.appResourcesDirectoryPath, outputProjectMtime);
 				if (!skipModulesAndResources) {
-					this.appResourcesChanged = this.containsNewerFiles(this.$projectData.appResourcesDirectoryPath, null, outputProjectMtime);
-					this.modulesChanged = this.containsNewerFiles(path.join(this.$projectData.projectDir, "node_modules"), path.join(this.$projectData.projectDir, "node_modules", "tns-ios-inspector")/*done because currently all node_modules are traversed, but tzraikov is working on improving behavior by resolving only the production dependencies*/, outputProjectMtime);
-					let platformResourcesDir = path.join(this.$projectData.appResourcesDirectoryPath, platformData.normalizedPlatformName);
-					if (platform === this.$devicePlatformsConstants.iOS.toLowerCase()) {
-						this.configChanged = this.filesChanged([
-							this.$options.baseConfig || path.join(platformResourcesDir, platformData.configurationFileName),
-							path.join(platformResourcesDir, "LaunchScreen.storyboard"),
-							path.join(platformResourcesDir, "build.xcconfig")
-						], outputProjectMtime);
+					if (this.filesChanged([path.join(this.$projectData.projectDir, "package.json")], outputProjectMtime)) {
+						this.modulesChanged = true;
 					} else {
-						this.configChanged = this.filesChanged([
-							path.join(platformResourcesDir, platformData.configurationFileName),
-							path.join(platformResourcesDir, "app.gradle")
-						], outputProjectMtime);
+						this.appResourcesChanged = this.containsNewerFiles(this.$projectData.appResourcesDirectoryPath, null, outputProjectMtime);
+						this.modulesChanged = this.containsNewerFiles(path.join(this.$projectData.projectDir, "node_modules"), path.join(this.$projectData.projectDir, "node_modules", "tns-ios-inspector")/*done because currently all node_modules are traversed, but tzraikov is working on improving behavior by resolving only the production dependencies*/, outputProjectMtime);
+						let platformResourcesDir = path.join(this.$projectData.appResourcesDirectoryPath, platformData.normalizedPlatformName);
+						if (platform === this.$devicePlatformsConstants.iOS.toLowerCase()) {
+							this.configChanged = this.filesChanged([
+								this.$options.baseConfig || path.join(platformResourcesDir, platformData.configurationFileName),
+								path.join(platformResourcesDir, "LaunchScreen.storyboard"),
+								path.join(platformResourcesDir, "build.xcconfig")
+							], outputProjectMtime);
+						} else {
+							this.configChanged = this.filesChanged([
+								path.join(platformResourcesDir, platformData.configurationFileName),
+								path.join(platformResourcesDir, "app.gradle")
+							], outputProjectMtime);
+						}
 					}
 				}
 
